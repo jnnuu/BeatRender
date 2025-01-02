@@ -51,7 +51,7 @@ namespace BeatRender
                 Snippet = new VideoSnippet
                 {
                     Title = title,
-                    Description = "Visualized and uploaded with BeatRender",
+                    Description = "Visualized and uploaded with BeatRender (https://github.com/jnnuu/BeatRender)",
                     Tags = new[] { "DJ", "BeatRender", $"{metadata.Tag.FirstGenre}" },
                     CategoryId = "10" // Category ID for "Music"
                 },
