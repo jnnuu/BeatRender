@@ -16,7 +16,6 @@ namespace BeatRender
         }
 
         [Function(nameof(BeatRenderer))]
-        //[BlobOutput("beatrender-output/{name}.mp4", Connection = "")]
         [BlobOutput("beatrender-output/video.mp4", Connection = "")]
         public async Task<Byte[]> Run([BlobTrigger("beatrender-input/{name}", Connection = "")] Stream stream, string name)
         {
@@ -65,6 +64,7 @@ namespace BeatRender
             _logger.LogInformation($"Media duration: {mediaInfo.Duration}");
 
             var altConversion = await FFmpeg.Conversions.FromSnippet.ToMp4(inputFilePath, outputFilePath);
+            //string visualizerFilter = $"[0:a]avectorscope=draw=line:s=1920x1080 [v]";
             string visualizerFilter = $"[0:a]showfreqs=mode=bar:s=1920x1080:colors={color}|{color}|{color}:win_size=2048:win_func=hanning:fscale=log:ascale=cbrt [v]";
             string textOverlayFilter = $"[v]drawtext=fontsize=80:x=100:y=100:fontcolor={color}:text=\'{text}\' [final]";
             string filterComplex = $"{visualizerFilter},{textOverlayFilter}";
