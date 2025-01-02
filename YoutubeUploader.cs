@@ -1,5 +1,6 @@
 using System.IO;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using Google.Apis.YouTube.v3;
@@ -30,6 +31,17 @@ namespace BeatRender
             // Read the blob into a local temporary file
             var tempFilePath = Path.Combine(Path.GetTempPath(), name);
 
+            var playlistService = new PlaylistService();
+            List<PlaylistEntry> entries = new();
+            try
+            {
+                string latestPlaylistAsJson = await playlistService.GetLatestPlaylistJsonAsync();
+                entries = System.Text.Json.JsonSerializer.Deserialize<List<PlaylistEntry>>(latestPlaylistAsJson);
+            } catch (Exception ex)
+            {
+                _logger.LogError("playlist not found");
+            }
+
             if (stream.CanSeek)
             {
                 stream.Seek(0, SeekOrigin.Begin);
@@ -45,13 +57,23 @@ namespace BeatRender
             var metadata = TagLib.File.Create(tempFilePath);
             var title = $"{metadata.Tag.Track.ToString("D3")} - {metadata.Tag.Title} ({metadata.Tag.FirstGenre} mix)";
 
+            string formattedTracklist = "";
+            if (entries.Count > 0)
+            {
+                formattedTracklist = "Tracklist: \n \n";
+                foreach (var entry in entries)
+                {
+                    formattedTracklist += $"{entry.TrackNumber}.\t {entry.TrackTitle} - {entry.Artist} ({entry.Album}) \n";
+                }
+                formattedTracklist += "\n";
+            }
             // Prepare video metadata
             var video = new Video
             {
                 Snippet = new VideoSnippet
                 {
                     Title = title,
-                    Description = "Visualized and uploaded with BeatRender (https://github.com/jnnuu/BeatRender)",
+                    Description = $"{formattedTracklist}Visualized and uploaded with BeatRender \nhttps://github.com/jnnuu/BeatRender",
                     Tags = new[] { "DJ", "BeatRender", $"{metadata.Tag.FirstGenre}" },
                     CategoryId = "10" // Category ID for "Music"
                 },
@@ -86,6 +108,9 @@ namespace BeatRender
             {
                 File.Delete(tempFilePath);
             }
+
+            // Clean up playlist.json
+            await playlistService.DeleteLatestPlayListsAsync();
 
             _logger.LogInformation($"C# Blob Trigger processed blob\n Name: {name} \n Youtube url: https://www.youtube.com/watch?v="+videoId);
         }

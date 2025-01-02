@@ -8,6 +8,7 @@
 
 - **🎵 Audio Metadata Extraction**: Automatically extracts artist, title, genre, and more from MP3 files using `TagLib`.
 - **🎨 Customizable Visualizers**: Generates video visualizations using `FFmpeg` with options for spectrum analysis, color customization, and text overlays.
+- **🔊 Rekordbox Tracklist Parser**: Parses the playlist history export file and uploads it as a formatted json file.
 - **☁️ Cloud Automation**: Leverages **Azure Blob Storage** and **Azure Functions** to process and visualize audio files automatically.
 - **📤 YouTube Integration**: Uploads generated videos directly to YouTube using the **YouTube Data API v3**.
 - **⚙️ Scalable Design**: Built for scalability and automation, making it ideal for batch audio-to-video rendering.
@@ -18,11 +19,15 @@
 
 1. **Audio Input**:
    - Upload an MP3 file to an Azure Blob Storage container.
-2. **Processing**:
-   - Azure Function extracts metadata and processes the audio with `FFmpeg` to create a visualizer video.
-3. **Output**:
+2. **Playlist Input**: 
+   - Upload Rekordbox playlist export txt file to playlists Azure Blob Storage container.
+3. **Processing**:
+   - `BeatRenderer` Azure Function extracts metadata and processes the audio with `FFmpeg` to create a visualizer video.
+   - `PlaylistParser` Azure Function parses the Rekordbox playlist file and outputs it as json to parsed-playlists container.
+4. **Output**:
    - The visualized video is saved to an Azure Blob Storage output container.
-4. **YouTube Upload**:
+5. **YouTube Upload**:
+   - `YoutubeUploader` Azure Function composes the video and metadata and adds tracklist to the description, if available.
    - The generated video is automatically uploaded to a specified YouTube channel.
 
 ---
